@@ -8,36 +8,176 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="tasks">📋 Задачи</button>
-        <button class="tab-btn" data-tab="habits">🔄 Привычки</button>
-        <button class="tab-btn" data-tab="goals">🎯 Цели</button>
-        <button class="tab-btn" data-tab="finance">💰 Финансы</button>
+    <!-- Основной контейнер -->
+    <div class="app-container">
+        
+        <!-- Шапка -->
+        <div class="header">
+            <div class="header-top">
+                <h1>Просто Трекер</h1>
+                <button class="settings-btn" id="settingsBtn">⚙️</button>
+            </div>
+            <div class="header-date">
+                <span id="currentDate">Сегодня</span>
+                <span id="currentDay">Ср, 25 мар.</span>
+            </div>
+        </div>
+
+        <!-- Прогресс -->
+        <div class="progress-card">
+            <div class="progress-stats">
+                <div class="stat">
+                    <span class="stat-value" id="completedTasks">0</span>
+                    <span class="stat-label">/ <span id="totalTasks">0</span></span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Список задач -->
+        <div class="tasks-section">
+            <div class="section-header">
+                <h3>На сегодня задач нет</h3>
+            </div>
+            <div id="tasks-list" class="tasks-list"></div>
+            <button class="add-task-btn" id="addTaskBtn">+ Добавить задачу</button>
+        </div>
+
+        <!-- Нижнее меню -->
+        <div class="bottom-menu">
+            <button class="menu-item active" data-tab="tasks">
+                <span class="menu-icon">📋</span>
+                <span class="menu-label">Задачи</span>
+            </button>
+            <button class="menu-item" data-tab="habits">
+                <span class="menu-icon">🔄</span>
+                <span class="menu-label">Привычки</span>
+            </button>
+            <button class="menu-item" data-tab="goals">
+                <span class="menu-icon">🎯</span>
+                <span class="menu-label">Цели на год</span>
+            </button>
+            <button class="menu-item" data-tab="analytics">
+                <span class="menu-icon">📊</span>
+                <span class="menu-label">Аналитика</span>
+            </button>
+        </div>
     </div>
 
-    <div id="tasks" class="tab-content active">
-        <h2>Задачи</h2>
-        <div id="tasks-list"></div>
-        <button id="add-task" class="add-btn">➕ Добавить задачу</button>
+    <!-- Вкладка Привычки (скрыта по умолчанию) -->
+    <div id="habits-tab" class="tab-page" style="display: none;">
+        <div class="header">
+            <button class="back-btn" data-back="tasks">←</button>
+            <h1>Привычки</h1>
+        </div>
+        <div class="habits-list" id="habits-list"></div>
+        <button class="add-btn" id="addHabitBtn">+ Добавить привычку</button>
     </div>
 
-    <div id="habits" class="tab-content">
-        <h2>Привычки</h2>
-        <div id="habits-list"></div>
-        <button id="add-habit" class="add-btn">➕ Добавить привычку</button>
+    <!-- Вкладка Цели -->
+    <div id="goals-tab" class="tab-page" style="display: none;">
+        <div class="header">
+            <button class="back-btn" data-back="tasks">←</button>
+            <h1>Цели на год</h1>
+        </div>
+        <div class="goals-list" id="goals-list"></div>
+        <button class="add-btn" id="addGoalBtn">+ Добавить цель</button>
     </div>
 
-    <div id="goals" class="tab-content">
-        <h2>Цели на год</h2>
-        <div id="goals-list"></div>
-        <button id="add-goal" class="add-btn">➕ Добавить цель</button>
+    <!-- Вкладка Аналитика -->
+    <div id="analytics-tab" class="tab-page" style="display: none;">
+        <div class="header">
+            <button class="back-btn" data-back="tasks">←</button>
+            <h1>Аналитика</h1>
+        </div>
+        <div class="analytics-stats">
+            <div class="period-buttons">
+                <button class="period-btn active" data-period="week">Неделя</button>
+                <button class="period-btn" data-period="month">Месяц</button>
+                <button class="period-btn" data-period="year">Год</button>
+            </div>
+            <div class="analytics-chart">
+                <div class="analytics-percent" id="analyticsPercent">0%</div>
+                <div class="analytics-details">
+                    <p>Всего задач: <span id="analyticsTotal">0</span></p>
+                    <p>Выполнено: <span id="analyticsCompleted">0</span></p>
+                    <p>Невыполнено: <span id="analyticsUncompleted">0</span></p>
+                    <p>Средний прогресс: <span id="analyticsProgress">0</span>%</p>
+                    <p>Продуктивный день: <span id="bestDay">Пн</span></p>
+                </div>
+            </div>
+            <div class="week-stats" id="weekStats">
+                <!-- Динамические дни недели -->
+            </div>
+        </div>
     </div>
 
-    <div id="finance" class="tab-content">
-        <h2>Финансы</h2>
-        <div id="finance-stats"></div>
-        <div id="transactions-list"></div>
-        <button id="add-transaction" class="add-btn">💰 Добавить транзакцию</button>
+    <!-- Вкладка Настройки -->
+    <div id="settings-tab" class="tab-page" style="display: none;">
+        <div class="header">
+            <button class="back-btn" data-back="tasks">←</button>
+            <h1>Настройки</h1>
+        </div>
+        <div class="settings-menu">
+            <div class="settings-item">
+                <span>👤 Профиль</span>
+                <span id="userName">Пользователь</span>
+            </div>
+            <div class="settings-item" id="premiumBtn">
+                <span>💎 Подписка</span>
+                <span id="premiumStatus">Неактивна</span>
+            </div>
+            <div class="settings-item">
+                <span>🔔 Уведомления</span>
+                <label class="switch">
+                    <input type="checkbox" id="notificationsToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="settings-item">
+                <span>⚙️ Предпочтения</span>
+                <span>→</span>
+            </div>
+        </div>
+        <div class="settings-footer">
+            <button class="support-btn">Связаться с поддержкой</button>
+            <button class="policy-btn">Пользовательское соглашение</button>
+            <button class="policy-btn">Политика конфиденциальности</button>
+        </div>
+    </div>
+
+    <!-- Премиум модальное окно -->
+    <div id="premiumModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Премиум Трекер</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <p>Больше свободы и десятки эксклюзивных функций с подпиской Премиум.</p>
+            <div class="premium-plans">
+                <div class="plan" data-plan="yearly">
+                    <div class="plan-badge">-33%</div>
+                    <div class="plan-name">Ежегодно</div>
+                    <div class="plan-price">1 999,00 ₽</div>
+                    <div class="plan-period">12 месяцев</div>
+                </div>
+                <div class="plan" data-plan="quarterly">
+                    <div class="plan-badge">-13%</div>
+                    <div class="plan-name">На 3 месяца</div>
+                    <div class="plan-price">649,00 ₽</div>
+                    <div class="plan-period">3 месяца</div>
+                </div>
+                <div class="plan" data-plan="monthly">
+                    <div class="plan-name">Ежемесячно</div>
+                    <div class="plan-price">249,00 ₽</div>
+                    <div class="plan-period">1 месяц</div>
+                </div>
+            </div>
+            <button class="trial-btn">Использовать пробный период (3 дня)</button>
+            <p class="terms">Оформляя подписку Премиум, вы принимаете условия Пользовательского соглашения.</p>
+        </div>
     </div>
 
     <script src="app.js"></script>
