@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Просто Трекер</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="tasks">📋 Задачи</button>
+        <button class="tab-btn" data-tab="habits">🔄 Привычки</button>
+        <button class="tab-btn" data-tab="goals">🎯 Цели</button>
+        <button class="tab-btn" data-tab="finance">💰 Финансы</button>
+    </div>
+
+    <div id="tasks" class="tab-content active">
+        <h2>Задачи</h2>
+        <div id="tasks-list"></div>
+        <button id="add-task" class="add-btn">➕ Добавить задачу</button>
+    </div>
+
+    <div id="habits" class="tab-content">
+        <h2>Привычки</h2>
+        <div id="habits-list"></div>
+        <button id="add-habit" class="add-btn">➕ Добавить привычку</button>
+    </div>
+
+    <div id="goals" class="tab-content">
+        <h2>Цели на год</h2>
+        <div id="goals-list"></div>
+        <button id="add-goal" class="add-btn">➕ Добавить цель</button>
+    </div>
+
+    <div id="finance" class="tab-content">
+        <h2>Финансы</h2>
+        <div id="finance-stats"></div>
+        <div id="transactions-list"></div>
+        <button id="add-transaction" class="add-btn">💰 Добавить транзакцию</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

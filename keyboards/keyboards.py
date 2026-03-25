@@ -54,6 +54,17 @@ def settings_menu():
         ],
         resize_keyboard=True
     )
+def finance_menu():
+    """Меню финансов"""
+    return ReplyKeyboardMarkup(
+        [
+            ["💰 Добавить трату", "💵 Добавить доход"],
+            ["📊 Аналитика", "📜 История"],
+            ["👥 Совместный бюджет", "💳 Долги"],
+            ["◀️ Назад"]
+        ],
+        resize_keyboard=True
+    )
 
 def premium_keyboard():
     """Клавиатура для премиум"""
