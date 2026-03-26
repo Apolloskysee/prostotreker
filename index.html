@@ -9,30 +9,39 @@
 </head>
 <body>
     <div class="app">
-        <!-- Основной экран -->
+        <!-- Главный экран (Задачи) -->
         <div id="mainScreen" class="screen active">
             <div class="header">
                 <div class="header-top">
                     <h1>Просто Трекер</h1>
                     <button class="icon-btn" id="settingsBtn">⚙️</button>
                 </div>
-                <div class="week-info">
-                    <div class="week-number" id="weekNumber">13 неделя</div>
-                    <div class="week-range" id="weekRange">23 мар. - 29 мар.</div>
+                <div class="date-info" id="currentDateInfo">
+                    <div class="day-name" id="dayName">Среда</div>
+                    <div class="full-date" id="fullDate">25 марта 2026</div>
                 </div>
             </div>
 
-            <!-- Календарь -->
-            <div class="calendar">
-                <div class="calendar-header">
-                    <button class="month-nav" id="prevMonth">←</button>
-                    <h2 id="currentMonth">Март 2026г.</h2>
-                    <button class="month-nav" id="nextMonth">→</button>
+            <!-- Прогресс -->
+            <div class="progress-card">
+                <div class="progress-stats">
+                    <div class="stat">
+                        <span class="stat-value" id="completedCount">0</span>
+                        <span class="stat-label">/ <span id="totalCount">0</span></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
                 </div>
-                <div class="calendar-weekdays">
-                    <span>ПН</span><span>ВТ</span><span>СР</span><span>ЧТ</span><span>ПТ</span><span>СБ</span><span>ВС</span>
+            </div>
+
+            <!-- Список задач -->
+            <div class="tasks-section">
+                <div class="section-header">
+                    <h3>Задачи на сегодня</h3>
                 </div>
-                <div class="calendar-days" id="calendarDays"></div>
+                <div id="tasksList" class="tasks-list"></div>
+                <button class="add-btn" id="addTaskBtn">+ Добавить задачу</button>
             </div>
 
             <!-- Нижнее меню -->
@@ -49,21 +58,15 @@
                     <span class="menu-icon">🎯</span>
                     <span>Цели на год</span>
                 </button>
+                <button class="menu-item" data-screen="calendar">
+                    <span class="menu-icon">📅</span>
+                    <span>Календарь</span>
+                </button>
                 <button class="menu-item" data-screen="analytics">
                     <span class="menu-icon">📊</span>
                     <span>Аналитика</span>
                 </button>
             </div>
-        </div>
-
-        <!-- Экран Задачи -->
-        <div id="tasksScreen" class="screen">
-            <div class="screen-header">
-                <button class="back-btn" data-back="main">←</button>
-                <h2>Задачи</h2>
-            </div>
-            <div class="tasks-list" id="tasksList"></div>
-            <button class="add-btn" id="addTaskBtn">+ Добавить задачу</button>
         </div>
 
         <!-- Экран Привычки -->
@@ -72,7 +75,7 @@
                 <button class="back-btn" data-back="main">←</button>
                 <h2>Привычки</h2>
             </div>
-            <div class="habits-list" id="habitsList"></div>
+            <div id="habitsList" class="habits-list"></div>
             <button class="add-btn" id="addHabitBtn">+ Добавить привычку</button>
         </div>
 
@@ -82,8 +85,27 @@
                 <button class="back-btn" data-back="main">←</button>
                 <h2>Цели на год</h2>
             </div>
-            <div class="goals-list" id="goalsList"></div>
+            <div id="goalsList" class="goals-list"></div>
             <button class="add-btn" id="addGoalBtn">+ Добавить цель</button>
+        </div>
+
+        <!-- Экран Календарь -->
+        <div id="calendarScreen" class="screen">
+            <div class="screen-header">
+                <button class="back-btn" data-back="main">←</button>
+                <h2>Календарь</h2>
+            </div>
+            <div class="calendar">
+                <div class="calendar-header">
+                    <button class="month-nav" id="prevMonth">←</button>
+                    <h2 id="currentMonth">Март 2026г.</h2>
+                    <button class="month-nav" id="nextMonth">→</button>
+                </div>
+                <div class="calendar-weekdays">
+                    <span>ПН</span><span>ВТ</span><span>СР</span><span>ЧТ</span><span>ПТ</span><span>СБ</span><span>ВС</span>
+                </div>
+                <div class="calendar-days" id="calendarDays"></div>
+            </div>
         </div>
 
         <!-- Экран Аналитика -->
@@ -125,29 +147,7 @@
                     <label>Дата</label>
                     <input type="date" id="taskDate" class="modal-input">
                 </div>
-                <div class="modal-field premium-field">
-                    <label>Периодичность</label>
-                    <select id="taskPeriodicity" class="modal-input" disabled>
-                        <option>Однократно</option>
-                        <option>Ежедневно</option>
-                        <option>Еженедельно</option>
-                    </select>
-                    <div class="premium-badge">Премиум</div>
-                </div>
-                <div class="modal-field premium-field">
-                    <label>Уведомление</label>
-                    <input type="time" id="taskNotification" class="modal-input" disabled>
-                    <div class="premium-badge">Премиум</div>
-                </div>
-                <div class="modal-field premium-field">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="taskImportant" disabled>
-                        <span>Важная</span>
-                    </label>
-                    <div class="premium-badge">Премиум</div>
-                </div>
                 <button class="submit-btn" id="submitTaskBtn">Добавить</button>
-                <div class="premium-note">Периодичность, уведомления и пометка «Важная» доступны только с подпиской <strong>Премиум Трекер</strong></div>
             </div>
         </div>
 
@@ -159,30 +159,7 @@
                     <button class="close-modal">&times;</button>
                 </div>
                 <input type="text" id="habitName" placeholder="Введите привычку" class="modal-input">
-                <div class="modal-field">
-                    <label>Дата начала</label>
-                    <input type="date" id="habitStartDate" class="modal-input">
-                </div>
-                <div class="modal-field">
-                    <label>Дата окончания</label>
-                    <input type="date" id="habitEndDate" class="modal-input" placeholder="Не указана">
-                </div>
-                <div class="modal-field premium-field">
-                    <label>Периодичность</label>
-                    <select id="habitPeriodicity" class="modal-input" disabled>
-                        <option>Ежедневная</option>
-                        <option>По будням</option>
-                        <option>По выходным</option>
-                    </select>
-                    <div class="premium-badge">Премиум</div>
-                </div>
-                <div class="modal-field premium-field">
-                    <label>Уведомление</label>
-                    <input type="time" id="habitNotification" class="modal-input" disabled>
-                    <div class="premium-badge">Премиум</div>
-                </div>
                 <button class="submit-btn" id="submitHabitBtn">Добавить</button>
-                <div class="premium-note">Периодичность и уведомления доступны только с подпиской <strong>Премиум Трекер</strong></div>
             </div>
         </div>
 

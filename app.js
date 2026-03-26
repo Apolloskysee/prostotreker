@@ -9,13 +9,22 @@ let goalsData = [];
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
+    updateDateInfo();
     document.getElementById('userName').textContent = currentUser.first_name;
     setupEventListeners();
-    renderCalendar();
     loadTasks();
     loadHabits();
     loadGoals();
+    renderCalendar();
 });
+
+function updateDateInfo() {
+    const now = new Date();
+    const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+    const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+    document.getElementById('dayName').textContent = days[now.getDay()];
+    document.getElementById('fullDate').textContent = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+}
 
 function setupEventListeners() {
     // Навигация по меню
@@ -28,7 +37,7 @@ function setupEventListeners() {
     
     // Кнопки назад
     document.querySelectorAll('.back-btn').forEach(btn => {
-        btn.addEventListener('click', () => switchScreen('main'));
+        btn.addEventListener('click', () => switchScreen('tasks'));
     });
     
     // Настройки
@@ -72,22 +81,31 @@ function setupEventListeners() {
 
 function switchScreen(screen) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    if (screen === 'main') {
+    if (screen === 'tasks') {
         document.getElementById('mainScreen').classList.add('active');
-        renderCalendar();
-    } else if (screen === 'tasks') {
-        document.getElementById('tasksScreen').classList.add('active');
-        renderTasks();
+        loadTasks();
     } else if (screen === 'habits') {
         document.getElementById('habitsScreen').classList.add('active');
-        renderHabits();
+        loadHabits();
     } else if (screen === 'goals') {
         document.getElementById('goalsScreen').classList.add('active');
-        renderGoals();
+        loadGoals();
+    } else if (screen === 'calendar') {
+        document.getElementById('calendarScreen').classList.add('active');
+        renderCalendar();
     } else if (screen === 'analytics') {
         document.getElementById('analyticsScreen').classList.add('active');
         loadAnalytics('week');
     }
+    
+    // Обновляем активный пункт меню
+    document.querySelectorAll('.menu-item').forEach(btn => {
+        if (btn.dataset.screen === screen) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
 }
 
 function openModal(modalId) {
@@ -123,101 +141,41 @@ async function sendCommand(command, data = {}) {
     });
 }
 
-// Календарь
-function renderCalendar() {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    document.getElementById('currentMonth').textContent = `${getMonthName(month)} ${year}г.`;
-    
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const startDate = new Date(firstDay);
-    startDate.setDate(firstDay.getDate() - (firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1));
-    
-    const days = [];
-    for (let i = 0; i < 42; i++) {
-        const date = new Date(startDate);
-        date.setDate(startDate.getDate() + i);
-        days.push(date);
-    }
-    
-    const container = document.getElementById('calendarDays');
-    container.innerHTML = '';
-    days.forEach(date => {
-        const dayDiv = document.createElement('div');
-        dayDiv.className = 'calendar-day';
-        if (date.getMonth() !== month) dayDiv.classList.add('other-month');
-        if (date.toDateString() === new Date().toDateString()) dayDiv.classList.add('today');
-        dayDiv.textContent = date.getDate();
-        dayDiv.addEventListener('click', () => selectDate(date));
-        container.appendChild(dayDiv);
-    });
-    
-    updateWeekInfo();
-}
-
-function getMonthName(month) {
-    const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
-                    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
-    return months[month];
-}
-
-function updateWeekInfo() {
-    const now = new Date();
-    const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
-    const pastDays = (now - firstDayOfYear) / 86400000;
-    const weekNumber = Math.ceil((pastDays + firstDayOfYear.getDay() + 1) / 7);
-    
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay() + 1);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
-    
-    document.getElementById('weekNumber').textContent = `${weekNumber} неделя`;
-    document.getElementById('weekRange').textContent = `${formatDate(weekStart)} - ${formatDate(weekEnd)}`;
-}
-
-function formatDate(date) {
-    return `${date.getDate()} ${getShortMonth(date.getMonth())}`;
-}
-
-function getShortMonth(month) {
-    const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-    return months[month];
-}
-
-function selectDate(date) {
-    // TODO: Показать задачи на выбранную дату
-}
-
 // Задачи
 async function loadTasks() {
-    const response = await sendCommand('get_tasks');
-    if (response.tasks) {
-        tasksData = response.tasks;
-        renderTasks();
+    try {
+        const response = await sendCommand('get_tasks');
+        if (response && response.tasks) {
+            tasksData = response.tasks;
+            renderTasks();
+            updateProgress();
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки задач:', error);
     }
 }
 
 function renderTasks() {
     const container = document.getElementById('tasksList');
-    if (tasksData.length === 0) {
-        container.innerHTML = '<div class="empty-state">Задач пока нет</div>';
+    const activeTasks = tasksData.filter(t => !t.completed);
+    
+    if (activeTasks.length === 0) {
+        container.innerHTML = '<div class="empty-state">На сегодня задач нет</div>';
         return;
     }
+    
     container.innerHTML = '';
-    tasksData.forEach(task => {
+    activeTasks.forEach(task => {
         const taskDiv = document.createElement('div');
-        taskDiv.className = `task-item ${task.completed ? 'completed' : ''}`;
+        taskDiv.className = 'task-item';
         taskDiv.innerHTML = `
             <div>
                 <span class="task-title">${escapeHtml(task.title)}</span>
                 ${task.important ? '<span class="important-badge">⭐ Важная</span>' : ''}
-                <div style="font-size: 12px; opacity: 0.6;">${task.date || ''}</div>
+                ${task.date ? `<div style="font-size: 12px; opacity: 0.6;">${task.date}</div>` : ''}
             </div>
             <div class="task-actions">
-                ${!task.completed ? `<button class="complete-task" data-id="${task.id}">✅</button>` : ''}
+                <button class="complete-task" data-id="${task.id}">✅</button>
                 <button class="delete-task" data-id="${task.id}">🗑️</button>
             </div>
         `;
@@ -232,6 +190,15 @@ function renderTasks() {
     });
 }
 
+function updateProgress() {
+    const completed = tasksData.filter(t => t.completed).length;
+    const total = tasksData.length;
+    const percent = total > 0 ? (completed / total) * 100 : 0;
+    document.getElementById('completedCount').textContent = completed;
+    document.getElementById('totalCount').textContent = total;
+    document.getElementById('progressFill').style.width = `${percent}%`;
+}
+
 async function addTask() {
     const title = document.getElementById('taskTitle').value;
     const date = document.getElementById('taskDate').value;
@@ -242,6 +209,7 @@ async function addTask() {
     await sendCommand('add_task', { title, date });
     closeAllModals();
     document.getElementById('taskTitle').value = '';
+    document.getElementById('taskDate').value = '';
     loadTasks();
 }
 
@@ -259,10 +227,14 @@ async function deleteTask(taskId) {
 
 // Привычки
 async function loadHabits() {
-    const response = await sendCommand('get_habits');
-    if (response.habits) {
-        habitsData = response.habits;
-        renderHabits();
+    try {
+        const response = await sendCommand('get_habits');
+        if (response && response.habits) {
+            habitsData = response.habits;
+            renderHabits();
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки привычек:', error);
     }
 }
 
@@ -277,13 +249,22 @@ function renderHabits() {
         const habitDiv = document.createElement('div');
         habitDiv.className = 'habit-item';
         habitDiv.innerHTML = `
-            <span>${escapeHtml(habit.name)}</span>
+            <div>
+                <span>${escapeHtml(habit.name)}</span>
+            </div>
             <div class="habit-actions">
                 <button class="complete-habit" data-id="${habit.id}">✅</button>
                 <button class="delete-habit" data-id="${habit.id}">🗑️</button>
             </div>
         `;
         container.appendChild(habitDiv);
+    });
+    
+    document.querySelectorAll('.complete-habit').forEach(btn => {
+        btn.addEventListener('click', () => completeHabit(btn.dataset.id));
+    });
+    document.querySelectorAll('.delete-habit').forEach(btn => {
+        btn.addEventListener('click', () => deleteHabit(btn.dataset.id));
     });
 }
 
@@ -293,18 +274,34 @@ async function addHabit() {
         alert('Введите название привычки');
         return;
     }
-    await sendCommand('add_habit', { name, days: ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ'] });
+    await sendCommand('add_habit', { name, days: ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'] });
     closeAllModals();
     document.getElementById('habitName').value = '';
     loadHabits();
 }
 
+async function completeHabit(habitId) {
+    await sendCommand('complete_habit', { habit_id: habitId });
+    loadHabits();
+}
+
+async function deleteHabit(habitId) {
+    if (confirm('Удалить привычку?')) {
+        await sendCommand('delete_habit', { habit_id: habitId });
+        loadHabits();
+    }
+}
+
 // Цели
 async function loadGoals() {
-    const response = await sendCommand('get_goals');
-    if (response.goals) {
-        goalsData = response.goals;
-        renderGoals();
+    try {
+        const response = await sendCommand('get_goals');
+        if (response && response.goals) {
+            goalsData = response.goals;
+            renderGoals();
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки целей:', error);
     }
 }
 
@@ -330,6 +327,13 @@ function renderGoals() {
         `;
         container.appendChild(goalDiv);
     });
+    
+    document.querySelectorAll('.complete-goal').forEach(btn => {
+        btn.addEventListener('click', () => completeGoal(btn.dataset.id));
+    });
+    document.querySelectorAll('.delete-goal').forEach(btn => {
+        btn.addEventListener('click', () => deleteGoal(btn.dataset.id));
+    });
 }
 
 async function addGoal() {
@@ -342,21 +346,72 @@ async function addGoal() {
     await sendCommand('add_goal', { title, deadline });
     closeAllModals();
     document.getElementById('goalTitle').value = '';
+    document.getElementById('goalDeadline').value = '';
     loadGoals();
+}
+
+async function completeGoal(goalId) {
+    await sendCommand('complete_goal', { goal_id: goalId });
+    loadGoals();
+}
+
+async function deleteGoal(goalId) {
+    if (confirm('Удалить цель?')) {
+        await sendCommand('delete_goal', { goal_id: goalId });
+        loadGoals();
+    }
+}
+
+// Календарь
+function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
+                    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+    document.getElementById('currentMonth').textContent = `${months[month]} ${year}г.`;
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(firstDay.getDate() - (firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1));
+    
+    const days = [];
+    for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        days.push(date);
+    }
+    
+    const container = document.getElementById('calendarDays');
+    container.innerHTML = '';
+    days.forEach(date => {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day';
+        if (date.getMonth() !== month) dayDiv.classList.add('other-month');
+        if (date.toDateString() === new Date().toDateString()) dayDiv.classList.add('today');
+        dayDiv.textContent = date.getDate();
+        container.appendChild(dayDiv);
+    });
 }
 
 // Аналитика
 async function loadAnalytics(period = 'week') {
-    const response = await sendCommand('get_analytics', { period });
-    if (response) {
-        document.getElementById('analyticsTotal').textContent = response.total_tasks || 0;
-        document.getElementById('analyticsCompleted').textContent = response.completed_tasks || 0;
-        const percent = response.completion_rate || 0;
-        document.getElementById('analyticsProgress').textContent = `${Math.round(percent)}%`;
+    try {
+        const response = await sendCommand('get_analytics', { period });
+        if (response) {
+            document.getElementById('analyticsTotal').textContent = response.total_tasks || 0;
+            document.getElementById('analyticsCompleted').textContent = response.completed_tasks || 0;
+            const percent = response.completion_rate || 0;
+            document.getElementById('analyticsProgress').textContent = `${Math.round(percent)}%`;
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки аналитики:', error);
     }
 }
 
 function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;

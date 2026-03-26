@@ -61,8 +61,9 @@ async def check_and_send_reminders(bot: Bot):
         print(f"Error in reminder system: {e}")
 
 async def start_reminder_scheduler(application):
-    """Запуск планировщика напоминаний (асинхронная версия)"""
-    async def reminder_job():
+    """Запуск планировщика напоминаний"""
+    # Важно: функция должна принимать context (аргумент от JobQueue)
+    async def reminder_job(context):
         await check_and_send_reminders(application.bot)
     
     job_queue = application.job_queue
